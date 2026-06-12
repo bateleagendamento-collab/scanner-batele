@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScanVault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #070C1A;
+    --bg2: #0D1526;
+    --bg3: #111D35;
+    --blue: #2D6BE4;
+    --blue-light: #4D8EFF;
+    --cyan: #00D4FF;
+    --cyan-dim: rgba(0,212,255,0.15);
+    --white: #F0F4FF;
+    --muted: #6B7A9E;
+    --border: rgba(255,255,255,0.07);
+    --glass: rgba(13,21,38,0.75);
+    --danger: #FF4D6D;
+    --success: #00E5A0;
+    --warning: #FFB830;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --glow: 0 0 30px rgba(0,212,255,0.12);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(45,107,228,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,212,255,0.07) 0%, transparent 60%),
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    pointer-events: none;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; position: relative; z-index: 1; min-height: 100vh; }
+  .screen.active { display: flex; }
+
+  /* ── AUTH ── */
+  #auth-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 440px;
+    background: var(--glass);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px 40px;
+    box-shadow: var(--glow), 0 40px 80px rgba(0,0,0,0.5);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--blue), var(--cyan));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  .logo-text {
+    font-size: 22px; font-weight: 800;
+    background: linear-gradient(90deg, var(--white), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .auth-tabs {
+    display: flex;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 32px;
+    border: 1px solid var(--border);
+  }
+
+  .auth-tab {
+    flex: 1; padding: 10px;
+    border: none; background: none;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px; font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .auth-tab.active {
+    background: var(--blue);
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(45,107,228,0.4);
+  }
+
+  .auth-form { display: none; flex-direction: column; gap: 16px; }
+  .auth-form.active { display: flex; }
+
+  .field-label {
+    font-size: 12px; font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+
+  .field-wrap { position: relative; }
+
+  .field-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 16px; pointer-events: none;
+  }
+
+  input[type=text], input[type=email], input[type=password] {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 14px 13px 42px;
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(45,107,228,0.15);
+  }
+
+  input::placeholder { color: var(--muted); }
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--blue), #1A4FC7);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(45,107,228,0.35);
+    margin-top: 8px;
+    position: relative; overflow: hidden;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(45,107,228,0.45);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    pointer-events: none;
+  }
+
+  .auth-error {
+    background: rgba(255,77,109,0.1);
+    border: 1px solid rgba(255,77,109,0.3);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--danger);
+    display: none;
+  }
+
+  /* ── MAIN APP ── */
+  #app-screen {
+    flex-direction: column;
+    padding: 0;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: rgba(7,12,26,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .header-logo { display: flex; align-items: center; gap: 10px; }
+  .header-logo .logo-icon { width: 34px; height: 34px; border-radius: 9px; font-size: 16px; }
+  .header-logo .logo-text { font-size: 17px; }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-radius: 99px;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: all 0.3s;
+  }
+
+  .status-pill.online {
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.25);
+    color: var(--success);
+  }
+
+  .status-pill.offline {
+    background: rgba(255,184,48,0.1);
+    border: 1px solid rgba(255,184,48,0.25);
+    color: var(--warning);
+  }
+
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor;
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .btn-icon {
+    width: 36px; height: 36px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+
+  .btn-icon:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* ── MAIN CONTENT ── */
+  .app-body {
+    flex: 1;
+    padding: 28px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── SCANNER AREA ── */
+  .scanner-card {
+    background: var(--glass);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scanner-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.5;
+  }
+
+  .scanner-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .scan-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .scan-input-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .scan-input-wrap input {
+    padding-left: 48px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    background: var(--bg2);
+    border-color: rgba(0,212,255,0.15);
+    height: 52px;
+  }
+
+  .scan-input-wrap input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+  }
+
+  .scan-icon-wrap {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--cyan);
+    font-size: 18px;
+    pointer-events: none;
+  }
+
+  .btn-scan {
+    padding: 0 28px;
+    background: linear-gradient(135deg, #00C4EF, #006FCF);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(0,212,255,0.25);
+    white-space: nowrap;
+    height: 52px;
+  }
+
+  .btn-scan:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(0,212,255,0.35); }
+
+  /* SCAN LINE ANIMATION */
+  .scan-line {
+    position: absolute; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    top: -10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
+  }
+
+  .scan-line.animate {
+    animation: scan-sweep 0.6s ease-out forwards;
+  }
+
+  @keyframes scan-sweep {
+    0%   { top: 0; opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  .stat-card.total::after { background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+  .stat-card.synced::after { background: linear-gradient(90deg, #00C48C, #00E5A0); }
+  .stat-card.pending::after { background: linear-gradient(90deg, #FF8C00, var(--warning)); }
+
+  .stat-label {
+    font-size: 11px; font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 32px; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card.total .stat-value { color: var(--cyan); }
+  .stat-card.synced .stat-value { color: var(--success); }
+  .stat-card.pending .stat-value { color: var(--warning); }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── OFFLINE BANNER ── */
+  .offline-banner {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    background: rgba(255,184,48,0.08);
+    border: 1px solid rgba(255,184,48,0.2);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .offline-banner.visible { display: flex; }
+
+  .offline-icon { font-size: 22px; }
+
+  .offline-text { flex: 1; }
+  .offline-text strong { font-size: 14px; font-weight: 600; color: var(--warning); display: block; }
+  .offline-text span { font-size: 13px; color: var(--muted); }
+
+  .sync-progress {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--success);
+    white-space: nowrap;
+  }
+
+  .sync-progress.active { display: flex; }
+
+  .sync-spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,229,160,0.2);
+    border-top-color: var(--success);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── ITEMS LIST ── */
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .list-title {
+    font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px; font-weight: 700;
+    background: var(--bg3);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .list-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .list-tab {
+    padding: 5px 14px;
+    border: none; background: none;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 500;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .list-tab.active {
+    background: var(--bg3);
+    color: var(--white);
+  }
+
+  .items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .item-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    transition: all 0.2s;
+    animation: slide-in 0.25s ease-out;
+  }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .item-card:hover {
+    border-color: rgba(45,107,228,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  .item-card.offline-item {
+    border-color: rgba(255,184,48,0.15);
+    background: rgba(255,184,48,0.04);
+  }
+
+  .item-card.syncing {
+    border-color: rgba(0,229,160,0.2);
+    animation: syncing-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes syncing-pulse {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: 0 0 16px rgba(0,229,160,0.1); }
+  }
+
+  .item-index {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 26px;
+    text-align: right;
+  }
+
+  .item-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .item-icon.synced-icon { background: rgba(0,229,160,0.1); }
+  .item-icon.offline-icon { background: rgba(255,184,48,0.1); }
+
+  .item-info { flex: 1; min-width: 0; }
+
+  .item-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 500;
+    color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .item-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .item-status {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+
+  .item-status.synced {
+    background: rgba(0,229,160,0.1);
+    color: var(--success);
+    border: 1px solid rgba(0,229,160,0.2);
+  }
+
+  .item-status.pending {
+    background: rgba(255,184,48,0.1);
+    color: var(--warning);
+    border: 1px solid rgba(255,184,48,0.2);
+  }
+
+  .item-status.syncing {
+    background: rgba(0,212,255,0.1);
+    color: var(--cyan);
+    border: 1px solid rgba(0,212,255,0.2);
+  }
+
+  .item-status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 56px 24px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-text { font-size: 14px; }
+
+  /* ── TOAST ── */
+  .toast-container {
+    position: fixed;
+    bottom: 28px; right: 24px;
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 999;
+  }
+
+  .toast {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 18px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    animation: toast-in 0.3s ease-out;
+    max-width: 320px;
+  }
+
+  .toast.success { border-color: rgba(0,229,160,0.3); }
+  .toast.error   { border-color: rgba(255,77,109,0.3); }
+  .toast.info    { border-color: rgba(0,212,255,0.3); }
+
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .auth-box { padding: 36px 24px; }
+    .app-body { padding: 20px 16px; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .stats-row .stat-card:last-child { grid-column: span 2; }
+    .scan-input-row { flex-direction: column; }
+    .btn-scan { height: 48px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<!-- ═══════════════ AUTH SCREEN ═══════════════ -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-box">
+    <div class="logo">
+      <div class="logo-icon">📡</div>
+      <span class="logo-text">ScanVault</span>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="switchTab('register')">Cadastrar</button>
+    </div>
+
+    <!-- LOGIN -->
+    <form class="auth-form active" id="login-form" onsubmit="handleLogin(event)">
+      <div class="auth-error" id="login-error"></div>
+      <div>
+        <div class="field-label">E-mail</div>
+        <div class="field-wrap">
+          <span class="field-icon">✉️</span>
+          <input type="email" id="login-email" placeholder="seu@email.com" required>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Senha</div>
+        <div class="field-wrap">
+          <span class="field-icon">🔒</span>
+          <input type="password" id="login-pass" placeholder="••••••••" required>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary">Entrar na conta →</button>
+    </form>
+
+    <!-- REGISTER -->
+    <form class="auth-form" id="register-form" onsubmit="handleRegister(event)">
+      <div class="auth-error" id="register-error"></div>
+      <div>
+        <div class="field-label">Nome completo</div>
+        <div class="field-wrap">
+          <span class="field-icon">👤</span>
+          <input type="text" id="reg-name" placeholder="Seu nome" required>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">E-mail</div>
+        <div class="field-wrap">
+          <span class="field-icon">✉️</span>
+          <input type="email" id="reg-email" placeholder="seu@email.com" required>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Senha</div>
+        <div class="field-wrap">
+          <span class="field-icon">🔒</span>
+          <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" required minlength="6">
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Confirmar senha</div>
+        <div class="field-wrap">
+          <span class="field-icon">🔐</span>
+          <input type="password" id="reg-pass2" placeholder="Repita a senha" required>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary">Criar conta →</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════ APP SCREEN ═══════════════ -->
+<div id="app-screen" class="screen">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-logo">
+      <div class="logo-icon">📡</div>
+      <span class="logo-text">ScanVault</span>
+    </div>
+    <div class="header-right">
+      <div class="status-pill online" id="status-pill">
+        <span class="status-dot"></span>
+        <span id="status-text">Online</span>
+      </div>
+      <div class="btn-icon" onclick="logout()" title="Sair">⏻</div>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <main class="app-body">
+
+    <!-- Scanner Card -->
+    <div class="scanner-card" id="scanner-card">
+      <div class="scan-line" id="scan-line"></div>
+      <div class="scanner-title">📷 &nbsp;Scanner</div>
+      <div class="scan-input-row">
+        <div class="scan-input-wrap">
+          <span class="scan-icon-wrap">⬡</span>
+          <input type="text" id="scan-input"
+            placeholder="Digite ou escaneie o código..."
+            autocomplete="off" autofocus>
+        </div>
+        <button class="btn-scan" onclick="doScan()">Registrar</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card total">
+        <div class="stat-label">Total</div>
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-sub">itens escaneados</div>
+      </div>
+      <div class="stat-card synced">
+        <div class="stat-label">Sincronizados</div>
+        <div class="stat-value" id="stat-synced">0</div>
+        <div class="stat-sub">salvos na nuvem</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-label">Pendentes</div>
+        <div class="stat-value" id="stat-pending">0</div>
+        <div class="stat-sub">aguardando sync</div>
+      </div>
+    </div>
+
+    <!-- Offline Banner -->
+    <div class="offline-banner" id="offline-banner">
+      <span class="offline-icon">📶</span>
+      <div class="offline-text">
+        <strong>Modo offline ativo</strong>
+        <span>Os scans serão sincronizados automaticamente quando a conexão for restaurada.</span>
+      </div>
+      <div class="sync-progress" id="sync-progress">
+        <div class="sync-spinner"></div>
+        <span id="sync-text">Sincronizando…</span>
+      </div>
+    </div>
+
+    <!-- List -->
+    <div>
+      <div class="list-header">
+        <div class="list-title">
+          Registros <span class="badge" id="badge-count">0</span>
+        </div>
+        <div class="list-tabs">
+          <button class="list-tab active" onclick="setFilter('all')">Todos</button>
+          <button class="list-tab" onclick="setFilter('synced')">Sincronizados</button>
+          <button class="list-tab" onclick="setFilter('pending')">Pendentes</button>
+        </div>
+      </div>
+
+      <div class="items-container" id="items-list">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-text">Nenhum item ainda.<br>Escaneie algo para começar.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toasts -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+const STORAGE_KEY = 'scanvault_items';
+const USERS_KEY   = 'scanvault_users';
+const SESSION_KEY = 'scanvault_session';
+
+// Google Apps Script URL — substitua pela URL do seu Web App
+const GAS_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+let isOnline   = navigator.onLine;
+let isSyncing  = false;
+let currentFilter = 'all';
+let currentUser   = null;
+
+// Carrega items do localStorage
+function loadItems() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveItems(items) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+}
+
+// ═══════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((el, i) => {
+    el.classList.toggle('active', (tab === 'login' ? 0 : 1) === i);
+  });
+  document.getElementById('login-form').classList.toggle('active', tab === 'login');
+  document.getElementById('register-form').classList.toggle('active', tab === 'register');
+}
+
+function showAuthError(formId, msg) {
+  const el = document.getElementById(formId + '-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
+  const users = getUsers();
+  const user  = users.find(u => u.email === email && u.password === btoa(pass));
+  if (!user) return showAuthError('login', 'E-mail ou senha incorretos.');
+  currentUser = user;
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+  openApp();
+}
+
+function handleRegister(e) {
+  e.preventDefault();
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  if (pass !== pass2) return showAuthError('register', 'As senhas não coincidem.');
+  const users = getUsers();
+  if (users.find(u => u.email === email)) return showAuthError('register', 'Este e-mail já está cadastrado.');
+  const user = { id: Date.now(), name, email, password: btoa(pass) };
+  users.push(user);
+  saveUsers(users);
+  currentUser = user;
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+  openApp();
+  toast('✅ Conta criada com sucesso!', 'success');
+}
+
+function openApp() {
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  renderList();
+  updateStats();
+}
+
+function logout() {
+  localStorage.removeItem(SESSION_KEY);
+  currentUser = null;
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('auth-screen').classList.add('active');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value  = '';
+}
+
+// Auto-login
+window.addEventListener('DOMContentLoaded', () => {
+  const sess = localStorage.getItem(SESSION_KEY);
+  if (sess) { currentUser = JSON.parse(sess); openApp(); }
+  setupScannerInput();
+});
+
+// ═══════════════════════════════════════════════════
+// SCANNER
+// ═══════════════════════════════════════════════════
+function setupScannerInput() {
+  const inp = document.getElementById('scan-input');
+  // Leitores de código de barras emitem Enter após o código
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') doScan(); });
+}
+
+function doScan() {
+  const inp = document.getElementById('scan-input');
+  const code = inp.value.trim();
+  if (!code) { inp.focus(); return; }
+
+  triggerScanAnimation();
+
+  const items = loadItems();
+  const item = {
+    id:        Date.now(),
+    code,
+    timestamp: new Date().toISOString(),
+    user:      currentUser?.name || 'Usuário',
+    status:    isOnline ? 'synced' : 'pending'
+  };
+
+  items.unshift(item);
+  saveItems(items);
+
+  inp.value = '';
+  inp.focus();
+
+  renderList();
+  updateStats();
+
+  if (isOnline) {
+    toast(`✅ "${code}" registrado`, 'success');
+    sendToGAS([item]);
+  } else {
+    toast(`📥 "${code}" salvo offline`, 'info');
+  }
+}
+
+function triggerScanAnimation() {
+  const line = document.getElementById('scan-line');
+  line.classList.remove('animate');
+  void line.offsetWidth; // reflow
+  line.classList.add('animate');
+  setTimeout(() => line.classList.remove('animate'), 700);
+}
+
+// ═══════════════════════════════════════════════════
+// SYNC
+// ═══════════════════════════════════════════════════
+async function sendToGAS(items) {
+  if (GAS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return; // demo mode
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (err) {
+    console.warn('GAS sync error:', err);
+  }
+}
+
+async function syncPendingItems() {
+  if (!isOnline || isSyncing) return;
+  const items = loadItems();
+  const pending = items.filter(i => i.status === 'pending');
+  if (!pending.length) return;
+
+  isSyncing = true;
+  const progress = document.getElementById('sync-progress');
+  progress.classList.add('active');
+
+  let synced = 0;
+  const total = pending.length;
+
+  for (const item of pending) {
+    document.getElementById('sync-text').textContent = `Sincronizando ${synced + 1}/${total}…`;
+
+    // Marca como syncing visualmente
+    const all = loadItems();
+    const idx = all.findIndex(i => i.id === item.id);
+    if (idx !== -1) { all[idx].status = 'syncing'; saveItems(all); renderList(); updateStats(); }
+
+    await new Promise(r => setTimeout(r, 400 + Math.random() * 300));
+
+    try {
+      await sendToGAS([item]);
+      const all2 = loadItems();
+      const idx2 = all2.findIndex(i => i.id === item.id);
+      if (idx2 !== -1) { all2[idx2].status = 'synced'; saveItems(all2); }
+    } catch {
+      const all2 = loadItems();
+      const idx2 = all2.findIndex(i => i.id === item.id);
+      if (idx2 !== -1) { all2[idx2].status = 'pending'; saveItems(all2); }
+    }
+
+    synced++;
+    renderList();
+    updateStats();
+  }
+
+  progress.classList.remove('active');
+  isSyncing = false;
+  toast(`☁️ ${synced} item(s) sincronizado(s)`, 'success');
+}
+
+// ═══════════════════════════════════════════════════
+// CONNECTIVITY
+// ═══════════════════════════════════════════════════
+function setOnlineStatus(online) {
+  isOnline = online;
+  const pill    = document.getElementById('status-pill');
+  const text    = document.getElementById('status-text');
+  const banner  = document.getElementById('offline-banner');
+
+  pill.className = 'status-pill ' + (online ? 'online' : 'offline');
+  text.textContent = online ? 'Online' : 'Offline';
+  banner.classList.toggle('visible', !online);
+
+  if (online) syncPendingItems();
+}
+
+window.addEventListener('online',  () => setOnlineStatus(true));
+window.addEventListener('offline', () => setOnlineStatus(false));
+setOnlineStatus(navigator.onLine);
+
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.list-tab').forEach((el, i) => {
+    el.classList.toggle('active', ['all','synced','pending'][i] === f);
+  });
+  renderList();
+}
+
+function renderList() {
+  const items = loadItems();
+  let filtered = items;
+  if (currentFilter === 'synced')  filtered = items.filter(i => i.status === 'synced');
+  if (currentFilter === 'pending') filtered = items.filter(i => ['pending','syncing'].includes(i.status));
+
+  document.getElementById('badge-count').textContent = filtered.length;
+  const container = document.getElementById('items-list');
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${currentFilter === 'pending' ? '📥' : '🔍'}</div>
+        <div class="empty-text">${currentFilter === 'pending' ? 'Nenhum item pendente.' : currentFilter === 'synced' ? 'Nenhum item sincronizado ainda.' : 'Nenhum item ainda.<br>Escaneie algo para começar.'}</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map((item, idx) => {
+    const isOffline = item.status === 'pending';
+    const isSyncingItem = item.status === 'syncing';
+    const dt = new Date(item.timestamp);
+    const timeStr = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+    const statusLabel = isOffline ? 'Pendente' : isSyncingItem ? 'Sincronizando' : 'Sincronizado';
+    const statusClass = isOffline ? 'pending' : isSyncingItem ? 'syncing' : 'synced';
+    const iconEmoji   = isOffline ? '📥' : isSyncingItem ? '🔄' : '✅';
+
+    return `
+      <div class="item-card ${isOffline ? 'offline-item' : ''} ${isSyncingItem ? 'syncing' : ''}">
+        <span class="item-index">#${(filtered.length - idx).toString().padStart(3, '0')}</span>
+        <div class="item-icon ${isOffline ? 'offline-icon' : 'synced-icon'}">${iconEmoji}</div>
+        <div class="item-info">
+          <div class="item-code">${escHtml(item.code)}</div>
+          <div class="item-meta">${item.user} · ${dateStr} às ${timeStr}</div>
+        </div>
+        <div class="item-status ${statusClass}">
+          <div class="item-status-dot"></div>
+          ${statusLabel}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  const items = loadItems();
+  const synced  = items.filter(i => i.status === 'synced').length;
+  const pending = items.filter(i => ['pending','syncing'].includes(i.status)).length;
+  document.getElementById('stat-total').textContent   = items.length;
+  document.getElementById('stat-synced').textContent  = synced;
+  document.getElementById('stat-pending').textContent = pending;
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; }, 2500);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// ═══════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Demo: simula offline/online toggle para testes (REMOVER em produção)
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'q') setOnlineStatus(!isOnline);
+});
+</script>
+</body>
+</html>
